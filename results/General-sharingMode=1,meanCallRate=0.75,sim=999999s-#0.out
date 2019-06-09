@@ -1,0 +1,29 @@
+** Event #0   t=0   Elapsed: 0.000s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 3   present: 3   in FES: 4
+** Event #1394944   t=123824.815195267437   Elapsed: 2.000s (0m 02s)  12% completed  (2% total)
+     Speed:     ev/sec=697472   simsec/sec=61912.4   ev/simsec=11.2655
+     Messages:  created: 836973   present: 9   in FES: 9
+** Event #2810368   t=249862.734816536241   Elapsed: 4.000s (0m 04s)  24% completed  (4% total)
+     Speed:     ev/sec=707712   simsec/sec=63019   ev/simsec=11.2301
+     Messages:  created: 1686226   present: 8   in FES: 8
+** Event #4228096   t=375774.137937702087   Elapsed: 6.000s (0m 06s)  37% completed  (7% total)
+     Speed:     ev/sec=708864   simsec/sec=62955.7   ev/simsec=11.2597
+     Messages:  created: 2536866   present: 12   in FES: 12
+** Event #5644544   t=501535.227863586221   Elapsed: 8.000s (0m 08s)  50% completed  (10% total)
+     Speed:     ev/sec=708224   simsec/sec=62880.5   ev/simsec=11.263
+     Messages:  created: 3386733   present: 9   in FES: 9
+** Event #7062528   t=627741.260415124041   Elapsed: 10.001s (0m 10s)  62% completed  (12% total)
+     Speed:     ev/sec=708992   simsec/sec=63103   ev/simsec=11.2355
+     Messages:  created: 4237527   present: 15   in FES: 15
+** Event #8478976   t=753969.408497129571   Elapsed: 12.001s (0m 12s)  75% completed  (15% total)
+     Speed:     ev/sec=708224   simsec/sec=63114.1   ev/simsec=11.2213
+     Messages:  created: 5087394   present: 12   in FES: 12
+** Event #9894912   t=879603.021889022385   Elapsed: 14.001s (0m 14s)  87% completed  (17% total)
+     Speed:     ev/sec=707968   simsec/sec=62816.8   ev/simsec=11.2704
+     Messages:  created: 5936955   present: 11   in FES: 11
+** Event #11242660   t=999999   Elapsed: 15.901s (0m 15s)  100% completed  (20% total)
+     Speed:     ev/sec=709341   simsec/sec=63366.2   ev/simsec=11.1943
+     Messages:  created: 6745602   present: 9   in FES: 9
+
+<!> Simulation time limit reached -- at t=999999s, event #11242660

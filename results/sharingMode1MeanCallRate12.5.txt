@@ -1,0 +1,42 @@
+version 2
+run General-219-20180513-18:59:04-23974
+attr configname General
+attr datetime 20180513-18:59:04
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars "$sharingMode=1, $meanCallRate=12.5, $sim=999999s"
+attr iterationvarsf sharingMode=1,meanCallRate=12.5,sim=999999s-
+attr measurement "$sharingMode=1, $meanCallRate=12.5, $sim=999999s"
+attr network Network
+attr processid 23974
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 219
+attr seedset 219
+itervar meanCallRate 12.5
+itervar sharingMode 1
+itervar sim 999999s
+param **.numSrc 3
+param **.numBlock 4
+param **.sharingMode 1
+param **.meanCallDuration 2
+param **.meanCallRate 12.5
+
+scalar Network.sdn "Blocking Probablity:" 11.789013333333
+scalar Network.sdn "Blocking Probablity_low:" 1.7678833786411
+scalar Network.sdn "Blocking Probablity_med:" 7.2090812641036
+scalar Network.sdn "Blocking Probablity_high:" 26.399454495088
+scalar Network.sdn "Blocking Probablity_bit_rate:" 0
+scalar Network.sdn "Intra[0] utilization:" 12.932476503501
+scalar Network.sdn "Intra[1] utilization:" 8.1509977368318
+scalar Network.sdn "Intra[2] utilization:" 7.129132152486
+scalar Network.sdn "Intra[3] utilization:" 6.6165444296619
+scalar Network.sdn "Inter[0] utilization:" 12.932476503501
+scalar Network.sdn "Inter[1] utilization:" 8.1509977368318
+scalar Network.sdn "Inter[2] utilization:" 7.129132152486
+scalar Network.sdn "Compute L1 utilization:" 582.80677046667
+scalar Network.sdn "Compute L2 utilization:" 571.66078706667
+scalar Network.sdn "Compute L3 utilization:" 545.18259423333
+scalar Network.sdn "Compute L4 utilization:" 497.28122373333
+

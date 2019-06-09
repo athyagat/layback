@@ -1,0 +1,363 @@
+/*
+ * fb.cc
+ *
+ *  Created on: Apr 7, 2018
+ *      Author: prate
+ */
+
+
+/* load 1 => low     =>   5
+ * load 2 => medium  =>  10
+ * load 3 => high    =>  30
+ */
+
+
+#include <vector>
+#include <string.h>
+#include <omnetpp.h>
+#include "dataPkt_m.h"
+
+using namespace omnetpp;
+
+#define LOW_COMPUTE_LOAD      5
+#define MED_COMPUTE_LOAD     10    // This is in comparison to 100 capacity at each fb
+#define HIGH_COMPUTE_LOAD    30
+
+#define PROCESSED_COMPUTE_LOAD   0
+#define PROCESSED_BIT_RATE     0.11
+
+#define LOW_BIT_RATE_LOAD     0.005
+#define MED_BIT_RATE_LOAD     0.030  // Proportional bit rate to fb_to_fb_link, and fb_to_fb_link
+#define HIGH_BIT_RATE_LOAD    0.100
+
+#define BIT_RATE_PER_CALL     0.33 // This corresponds to 330 Mbps per call
+
+// Average load = (5+10+30)/3 =  15
+
+typedef enum {low, med, high}         load;
+typedef enum {SUCCESS, FAILURE}       feedback;
+typedef enum {fb_sink, fb_fb}         dimension;
+typedef enum {dequeue, call_duration_expiry}   selfMsg;
+
+class fb : public cSimpleModule
+{
+protected:
+public:
+    virtual void  initialize();
+    virtual void  handleMessage(cMessage *msg);
+    void          finish();
+    feedback      handleCompute(double compute_load, dimension dim);
+    feedback      handleBitrate(double compute_bitrate, dimension dim, feedback compute_result);
+    void          decrement_values(dataPkt *msg, dimension dim);
+                  fb(); // constructor
+                 ~fb(); // destructor
+    int           currentCompute;
+    int           maxCompute;
+    int           numBlock;
+    double        fb_to_fb_link;
+    double        fb_to_sink_link;
+    double        current_fb_fb;
+    double        current_fb_sink;
+    cPacketQueue *callQueue;
+    simtime_t     endTransmission;
+    double       lowCallLoadData[10];
+    double       lowBitRateData[10];
+    double       mediumCallLoadData[10];
+    double       mediumBitRateData[10];
+    double       highCallLoadData[10];
+    double       highBitRateData[10];
+};
+
+Define_Module(fb);
+
+fb::fb(){
+//This is the constructor
+// We can define any initialization variables here
+}
+
+fb::~fb(){
+//This is the destructor
+   delete callQueue;
+}
+
+void fb::initialize()
+{
+    callQueue                      =  new cPacketQueue("Queue for calls");
+    currentCompute                 =  0;    // To maintain active number of call in a fb
+    maxCompute                     =  0;
+    current_fb_fb                  =  0;
+    current_fb_sink                =  0;
+    numBlock                       =  (int)    par("numBlock");
+    fb_to_fb_link                  =  (double) par("fb_to_fb_link");
+    fb_to_sink_link                =  (double) par("fb_to_sink_link");
+    lowCallLoadData[0]             =  1;
+    lowBitRateData[numBlock-1]     =  0.005;
+    mediumCallLoadData[0]          =  2;
+    mediumBitRateData[numBlock-1]  =  0.030;
+    highCallLoadData[0]            =  4;
+    highBitRateData[numBlock-1]    =  0.100;
+
+ if(getIndex()==70)
+ {
+    for (int i=1; i<numBlock; i++)
+    {
+        lowCallLoadData[i]     = lowCallLoadData[i-1]*2;
+        mediumCallLoadData[i]  = mediumCallLoadData[i-1]*2;
+        highCallLoadData[i]    = highCallLoadData[i-1]*2;
+    }
+
+    for (int i=numBlock-1; i>=0; i--)
+    {
+        lowBitRateData[i-1]    =  lowBitRateData[i]*3;
+        mediumBitRateData[i-1] =  mediumBitRateData[i]*3;
+        highBitRateData[i-1]   = highBitRateData[i]*3;
+    }
+
+    for (int i=0; i<numBlock; i++)
+    {
+        EV<<"Low call load ["<<i+1<<"]: " <<lowCallLoadData[i]<<endl;
+        EV<<"Low  Bit Rate ["<<i+1<<"]: " <<lowBitRateData[i]<<endl<<endl;
+
+        EV<<"Med call load ["<<i+1<<"]: " <<mediumCallLoadData[i]<<endl;
+        EV<<"Med  Bit Rate ["<<i+1<<"]: " <<mediumBitRateData[i]<<endl<<endl;
+
+        EV<<"Hig call load ["<<i+1<<"]: " <<highCallLoadData[i]<<endl;
+        EV<<"Hig  Bit Rate ["<<i+1<<"]: " <<highBitRateData[i]<<endl<<endl;
+    }
+ }
+
+    WATCH(currentCompute);
+    WATCH(maxCompute);
+    WATCH(fb_to_fb_link);
+    WATCH(fb_to_sink_link);
+    WATCH(current_fb_fb);
+    WATCH(current_fb_sink);
+
+    //  This is temporary to identify the port on SDN
+    //  dataPkt *msg      = new dataPkt("SDNmsg");
+    //  send(msg, "fb_to_SDN$o");
+
+}
+
+void fb::handleMessage(cMessage *msg)
+{
+    // 1. Maintain the global stats
+    // 2. Forward the computing result
+    // 3. Communicate with the SDN
+
+    if(msg->isSelfMessage())        // A self generated message to dequeue the packet from queue
+    {
+        dataPkt *ttmsg   = check_and_cast<dataPkt *>(msg);
+
+        switch(ttmsg->getSelfMsgType())
+        {
+            case dequeue:
+                {
+               //     endTransmission  = gate("fb_to_sink$o")->getTransmissionChannel()->getTransmissionFinishTime();
+
+               //     if(endTransmission <= simTime() && !callQueue->isEmpty())
+                       {
+                          send(callQueue->pop() ,"fb_to_sink$o");
+                          delete ttmsg;
+                       }
+               //     else
+                       {
+               //         scheduleAt(endTransmission, ttmsg);
+                       }
+                    break;
+                }
+            case call_duration_expiry:
+                {
+                    decrement_values(ttmsg, fb_sink);
+                    EV<<"Current values are decremented\n" ;
+                    delete ttmsg;
+                    break;
+                }
+        }
+
+     }
+    else  // Not a self message
+        {
+           dataPkt *ttmsg = check_and_cast<dataPkt *>(msg);
+
+           if(ttmsg->getArrivalGateId()==8)      // This is from SDN node
+           {
+               //  EV<<"The max computer value is assigned by SDN <<"\n";
+               maxCompute = ttmsg->getMaxCalls_to_fb();
+               delete       ttmsg;
+           }
+           else                                  // This is from SRC node
+           {
+               if(ttmsg->getArrivalGateId() == 0 && ttmsg->getIsProcessed() == false)
+               // This is from fb->sink direction
+               {
+                   feedback result1;
+                   feedback result2;
+                   // Generate a msg and queue at call expiry
+
+                   result1 = handleCompute(ttmsg->getCall_load(), fb_sink);
+                   result2 = handleBitrate(ttmsg->getBit_rate(), fb_sink, result1);
+            /*
+                   if(result1 == SUCCESS)
+                      msg->setDecCompute(ttmsg->getCall_load());
+                   else
+                       msg->setDecCompute(0);
+                   if(result2 == SUCCESS)
+                      msg->setDecBitRate(ttmsg->getBit_rate()/3);
+                   else
+                       msg->setDecBitRate(0);
+
+                   scheduleAt(simTime()+ttmsg->getCallDuration(), msg);    // for the expiry of call duration
+            */
+                   if(result1 == SUCCESS && result2 == SUCCESS)            // This mean data rate and computing is accepted
+                   {
+                      ttmsg->setIsProcessed(true);
+
+                      // This is to increment the values
+
+                      currentCompute = currentCompute + ttmsg->getCall_load();
+                      current_fb_sink = current_fb_sink + (ttmsg->getBit_rate()/3);
+
+                      // This is to decrement the values
+
+                      dataPkt *msg = new dataPkt("SelfMsg_call_expiry");
+                      msg->setSelfMsgType(call_duration_expiry);
+
+
+                      msg->setDecCompute(ttmsg->getCall_load());
+                      msg->setDecBitRate(ttmsg->getBit_rate()/3);
+
+                      EV<<"The call duration is: "<<ttmsg->getCallDuration()<<"\n";
+                      scheduleAt(simTime()+ttmsg->getCallDuration(), msg);    // for the expiry of call duration
+
+                      // Generate a msg and queue right away
+
+                      ttmsg->setBit_rate(ttmsg->getBit_rate()/3);
+                      callQueue->insert(ttmsg);                            // Call is inserted into the Queue
+                      dataPkt *msg2 = new dataPkt("SelfMsg_to_dequeue");
+                      msg2->setSelfMsgType(dequeue);
+                      scheduleAt(simTime(), msg2);
+                   }
+                   else
+                   {
+                       EV<<"Cannot accommodate call, compute load needed is:"<<ttmsg->getCall_load()<<"\n";
+                       EV<<"Current load is:  "<<currentCompute<<"\n";
+                       send(ttmsg, "fb_to_SDN$o");
+                   //  delete ttmsg; // Add logic to SDN / Distributed Computing
+                   }
+
+               }
+               else if(ttmsg->getArrivalGateId() == 0 && ttmsg->getIsProcessed() == true)  // If the packet is processed
+               {
+
+                   current_fb_sink = current_fb_sink + (ttmsg->getBit_rate()); // increment the bitrate
+
+                   dataPkt *msg = new dataPkt("SelfMsg_call_expiry");
+                   msg->setSelfMsgType(call_duration_expiry);
+                   msg->setDecBitRate(ttmsg->getBit_rate());
+
+                   scheduleAt(simTime()+ttmsg->getCallDuration(), msg);  // decrement after call expiry
+
+                   callQueue->insert(ttmsg);
+                   dataPkt *msg3 = new dataPkt("SelfMsg_to_dequeue");
+                   msg3->setSelfMsgType(dequeue);
+                   scheduleAt(simTime(), msg3);
+                   EV<<"Just forwarding the call\n";
+               }
+
+               if((getIndex()+1)%numBlock == 0)
+               {
+                   EV <<" I am at the last FB\n";
+               }
+           }
+        }
+}
+
+feedback fb::handleCompute(double compute_load, dimension dim)
+{
+    switch(dim)
+        {
+          case fb_sink:
+          {
+                if((currentCompute + compute_load) <= maxCompute)
+                {
+   //                 currentCompute = currentCompute + compute_load;
+                    return SUCCESS;
+                }
+                else
+                {
+                    return FAILURE;
+                }
+                break;
+          }
+          case fb_fb:
+          {
+              return FAILURE;
+              break;
+          }
+        }
+}
+
+feedback fb::handleBitrate(double compute_bitrate, dimension dim, feedback compute_result)
+{
+    switch(dim)
+        {
+          case fb_sink:
+          {
+             if(compute_result == SUCCESS) // Compute is passed
+             {
+               if((current_fb_sink + (compute_bitrate/3)) <= fb_to_sink_link)
+                {
+//                    current_fb_sink = current_fb_sink + (compute_bitrate/3);
+                    return SUCCESS;
+                }
+                else
+                {
+                    return FAILURE;
+                }
+             }
+             else         // Compute not possible
+             {
+                 if((current_fb_sink + compute_bitrate) <= fb_to_sink_link)
+                  {
+ //                     current_fb_sink = current_fb_sink + compute_bitrate;
+                      return SUCCESS;
+                  }
+                  else
+                  {
+                      return FAILURE;
+                  }
+             }
+                break;
+          }
+          case fb_fb:
+          {
+              if((current_fb_fb + compute_bitrate) <= fb_to_fb_link)
+              {
+                  current_fb_fb = current_fb_fb + compute_bitrate;
+                  return SUCCESS;
+              }
+              else
+              {
+                  return FAILURE;
+              }
+              break;
+          }
+
+        }
+}
+
+void fb::decrement_values(dataPkt *msg, dimension dim)
+{
+    currentCompute = currentCompute - msg->getDecCompute();
+    if(dim == fb_sink)
+        current_fb_sink =  current_fb_sink - msg->getDecBitRate();
+    else if (dim == fb_fb)
+        current_fb_fb =  current_fb_fb - msg->getDecBitRate();
+
+}
+
+
+void fb::finish()
+{
+}

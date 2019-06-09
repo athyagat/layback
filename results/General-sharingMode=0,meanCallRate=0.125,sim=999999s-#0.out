@@ -1,0 +1,8 @@
+** Event #0   t=0   Elapsed: 0.000s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 3   present: 3   in FES: 4
+** Event #875468   t=999999   Elapsed: 1.194s (0m 01s)  100% completed  (20% total)
+     Speed:     ev/sec=733223   simsec/sec=837520   ev/simsec=0.875469
+     Messages:  created: 374913   present: 3   in FES: 3
+
+<!> Simulation time limit reached -- at t=999999s, event #875468

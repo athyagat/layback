@@ -1,0 +1,1 @@
+-DHAVE_SWAPCONTEXT -DWITH_QTENV -DWITH_OSG -DWITH_TKENV -DWITH_MPI -DXMLPARSER=libxml -DWITH_PARSIM -DWITH_NETBUILDER  -g -Wall -fPIC  -fno-stack-protector   -I. -I/afs/asu.edu/users/a/t/h/athyagat/omnetpp-5.0/include

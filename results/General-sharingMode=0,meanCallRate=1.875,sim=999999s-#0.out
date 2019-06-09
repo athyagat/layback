@@ -1,0 +1,29 @@
+** Event #0   t=0   Elapsed: 0.000s (0m 00s)  0% completed  (80% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 3   present: 3   in FES: 4
+** Event #1770496   t=134588.875277436937   Elapsed: 2.000s (0m 02s)  13% completed  (82% total)
+     Speed:     ev/sec=885248   simsec/sec=67294.4   ev/simsec=13.1549
+     Messages:  created: 759295   present: 10   in FES: 10
+** Event #3543552   t=269506.976765272266   Elapsed: 4.000s (0m 04s)  26% completed  (85% total)
+     Speed:     ev/sec=886528   simsec/sec=67459.1   ev/simsec=13.1417
+     Messages:  created: 1519183   present: 12   in FES: 12
+** Event #5318912   t=404904.951855262224   Elapsed: 6.000s (0m 06s)  40% completed  (88% total)
+     Speed:     ev/sec=887680   simsec/sec=67699   ev/simsec=13.1122
+     Messages:  created: 2279394   present: 11   in FES: 11
+** Event #7092480   t=539728.250723742591   Elapsed: 8.000s (0m 08s)  53% completed  (90% total)
+     Speed:     ev/sec=886784   simsec/sec=67411.6   ev/simsec=13.1548
+     Messages:  created: 3040392   present: 4   in FES: 4
+** Event #8865024   t=674850.189438801768   Elapsed: 10.001s (0m 10s)  67% completed  (93% total)
+     Speed:     ev/sec=886272   simsec/sec=67561   ev/simsec=13.1181
+     Messages:  created: 3799761   present: 10   in FES: 10
+** Event #10634240   t=809529.703882985122   Elapsed: 12.001s (0m 12s)  80% completed  (96% total)
+     Speed:     ev/sec=884608   simsec/sec=67339.8   ev/simsec=13.1365
+     Messages:  created: 4557936   present: 13   in FES: 13
+** Event #12403712   t=944219.590566188323   Elapsed: 14.001s (0m 14s)  94% completed  (98% total)
+     Speed:     ev/sec=884736   simsec/sec=67344.9   ev/simsec=13.1374
+     Messages:  created: 5316705   present: 11   in FES: 11
+** Event #13133342   t=999999   Elapsed: 14.824s (0m 14s)  100% completed  (100% total)
+     Speed:     ev/sec=887627   simsec/sec=67858   ev/simsec=13.0806
+     Messages:  created: 5628735   present: 7   in FES: 7
+
+<!> Simulation time limit reached -- at t=999999s, event #13133342
