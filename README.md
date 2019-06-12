@@ -15,31 +15,42 @@ This simulation setup is configured as follows:
 OPERATIONAL PROCEDURE
 ===========================
 The call generator originates three types of calls, with the following compute demands and bitrate requirements:
+
    call[low].compute_data[numBlock-1]      = 1;
    call[low].bit_rate_data[numBlock-1]     = 0.005;
-
+   
    call[medium].compute_data[numBlock-1]   = 2;;
    call[medium].bit_rate_data[numBlock-1]  = 0.030;
 
    call[high].compute_data[numBlock-1]     = 4;
    call[high].bit_rate_data[numBlock-1]    = 0.100;
+
 Low, medium, and high loads are randomly chosen in a uniform fashion.
-The fb nodes id's are placed as below
+The fb nodes id's are placed as below:
+
               SDN
 
-     fb0   fb1  fb2   fb3 
-user -> fb4 fb5 fb6 fb7 -> Sink fb8 fb9 fb10 fb11
+            fb0   fb1  fb2   fb3 
+	user -> fb4   fb5  fb6   fb7  -> Sink 
+            fb8   fb9  fb10  fb11
+		
 For a 4-layer and 3-operator network, the compute and bitrate requirements are verified in the order,
 for with-sharing:
-int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] = { {0, 1, 4, 8, 2, 5, 9, 3, 6, 10, 7, 11},
-{4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, {8, 9, 0, 4, 10, 1, 5, 11, 2, 6, 3, 7}
-}; effectively in a zig-zag pattern prioritizing the nodes closer to the user.
-for no-sharing:
-int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
-              { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
-                {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
-                {8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
-              };
+
+	int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] = 
+			{ {0, 1, 4, 8, 2, 5, 9, 3, 6, 10, 7, 11},
+			  {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
+			  {8, 9, 0, 4, 10, 1, 5, 11, 2, 6, 3, 7}
+			}; 
+
+effectively in a zig-zag pattern prioritizing the nodes closer to the user.
+	for no-sharing:
+	
+	int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
+				  { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
+					{4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
+					{8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
+				  };
 effectively on the same function chain.
 
 EXECUTION
