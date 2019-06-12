@@ -1,4 +1,4 @@
-README
+README:
 
 =====================
 INTRODUCTION
@@ -7,23 +7,90 @@ INTRODUCTION
 This simulation framework has been implemented in OMNET++, www.omnetpp.org, version 5.0. 
 The LayBack siumation framework implements function split fronthaul network as part of 
 Layered Backhaul (LayBack) implemetion mechanism. The fundamental compoments include
-traffic generator, functional blocks, and SDN compute. Src.cc implements the
-traffic generator, fb.cc implements the functional block, and SDN.cc implements the
+call generator, functional blocks, and SDN compute. src.cc implements the
+call generator, fb.cc implements the functional block, and SDN.cc implements the
 SDN compute node mechanism. 
 
 =====================
 SIMULATION SETUP
 =====================
-Explain traffic scenario
+This simualtion setup is configured in following ways:
 
+1. Call generator (src.cc) generates the calls type of call, 
+with the mean call rate (\lambda) as a Poission process.
+
+2. Funcation block (fb.cc) forwards the request to SDN with the fb id such that
+the computing and link resources can be assigned by the SDN and tracked.
+
+3. SDN block (SDN.cc) is the core of the simulation which implements most 
+of the functions of LayBack framework such as allocation, tracking, decrementing 
+the resources once the call expires, and rejecting the call.
+
+4. sink.cc collects all the necessary data and helps in the post processing of the
+results.
+
+5. MATLAB script (matlab_parsing.m) is used to extract the data from the out/results
+folder of omnetpp workspace. 
 
 =====================
-SIMULATION SETUP
+OPERATIONAL PROCEDURE
 =====================
-Install the OMNET++ version 5.0 or greater, clean the project 
+The call generator originates three type of call loads, and intial allocation of static
+compute and bitrates are as below:
+
+       call[low].compute_data[numBlock-1]      = 1;
+       call[low].bit_rate_data[numBlock-1]     = 0.005;
+
+       call[medium].compute_data[numBlock-1]   = 2;;
+       call[medium].bit_rate_data[numBlock-1]  = 0.030;
+
+       call[high].compute_data[numBlock-1]     = 4;
+       call[high].bit_rate_data[numBlock-1]    = 0.100;
+
+
+Low, medium, and high loads are randomly choosen in a uniform fashion.  
+
+The fb nodes id's are placed as below
+
+                  SDN
+
+         fb0   fb1  fb2   fb3 
+user  -> fb4   fb5  fb6   fb7   ->  Sink
+         fb8   fb9  fb10  fb11 
 
 
 
+For a 4 layer and 3 operator, the compute and bitrate requirements are 
+verified in the order,  
+
+for with-sharing: 
+
+  int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
+                  { {0, 1, 4, 8, 2, 5, 9, 3, 6, 10, 7, 11},  
+                    {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
+                    {8, 9, 0, 4, 10, 1, 5, 11, 2, 6, 3, 7}  
+                  };
+effectively in a zig-zag pattern prioritizing the nodes closer to the user.
+
+for no-sharing: 
+
+    int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
+                  { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
+                    {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
+                    {8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
+                  };
+effectively on the same function chain.
+
 =====================
-RESULTS
+EXECUTION
 =====================
+1. Install the OMNET++ version 5.0 or greater, 
+2. Import the project from local folder, and change your workspace to LayBack folder 
+3. "Clean" the project
+4. "Build" the project
+5. "Run" to run each experiment as defined in omnetpp.ini, change ini file 
+to reflect your simulation method.
+6. The entire process can be automated with a common command prompt 
+execution using the command: 
+ 
+
