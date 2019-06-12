@@ -47,10 +47,10 @@ effectively in a zig-zag pattern prioritizing the nodes closer to the user.
 	for no-sharing:
 	
 	int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
-		    { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
+			{ {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
 			  {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
 			  {8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
-		    };
+			};
 effectively on the same function chain.
 
 EXECUTION
