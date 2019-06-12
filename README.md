@@ -1,12 +1,10 @@
-README:
-
 =====================
 INTRODUCTION
 =====================
 
 This simulation framework has been implemented in OMNET++, www.omnetpp.org, version 5.0. 
-The LayBack siumation framework implements function split fronthaul network as part of 
-Layered Backhaul (LayBack) implemetion mechanism. The fundamental compoments include
+The LayBack simulation framework implements function split fronthaul network as part of 
+Layered Backhaul (LayBack) implementation mechanism. The fundamental components include
 call generator, functional blocks, and SDN compute. src.cc implements the
 call generator, fb.cc implements the functional block, and SDN.cc implements the
 SDN compute node mechanism. 
@@ -19,7 +17,7 @@ This simualtion setup is configured in following ways:
 1. Call generator (src.cc) generates the calls type of call, 
 with the mean call rate (\lambda) as a Poission process.
 
-2. Funcation block (fb.cc) forwards the request to SDN with the fb id such that
+2. Function block (fb.cc) forwards the request to SDN with the fb-id such that
 the computing and link resources can be assigned by the SDN and tracked.
 
 3. SDN block (SDN.cc) is the core of the simulation which implements most 
@@ -48,7 +46,7 @@ compute and bitrates are as below:
        call[high].bit_rate_data[numBlock-1]    = 0.100;
 
 
-Low, medium, and high loads are randomly choosen in a uniform fashion.  
+Low, medium, and high loads are randomly chosen in a uniform fashion.  
 
 The fb nodes id's are placed as below
 
@@ -90,7 +88,6 @@ EXECUTION
 4. "Build" the project
 5. "Run" to run each experiment as defined in omnetpp.ini, change ini file 
 to reflect your simulation method.
-6. The entire process can be automated with a common command prompt 
-execution using the command: 
+6. The entire process can be automated with a omnetpp "run" command on command-prompt window.
  
 
