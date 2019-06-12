@@ -16,14 +16,14 @@ OPERATIONAL PROCEDURE
 ===========================
 The call generator originates three types of calls, with the following compute demands and bitrate requirements:
 
-   call[low].compute_data[numBlock-1]      = 1;
-   call[low].bit_rate_data[numBlock-1]     = 0.005;
-   
-   call[medium].compute_data[numBlock-1]   = 2;;
-   call[medium].bit_rate_data[numBlock-1]  = 0.030;
+	call[low].compute_data[numBlock-1]      = 1;
+	call[low].bit_rate_data[numBlock-1]     = 0.005;
 
-   call[high].compute_data[numBlock-1]     = 4;
-   call[high].bit_rate_data[numBlock-1]    = 0.100;
+	call[medium].compute_data[numBlock-1]   = 2;
+	call[medium].bit_rate_data[numBlock-1]  = 0.030;
+
+	call[high].compute_data[numBlock-1]     = 4;
+	call[high].bit_rate_data[numBlock-1]    = 0.100;
 
 Low, medium, and high loads are randomly chosen in a uniform fashion.
 The fb nodes id's are placed as below:
@@ -47,10 +47,10 @@ effectively in a zig-zag pattern prioritizing the nodes closer to the user.
 	for no-sharing:
 	
 	int scheduleMap[MAX_NUM_SRC_VALUE][MAX_NUM_BLOCK_VALUE*MAX_NUM_SRC_VALUE] =
-				  { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
-					{4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
-					{8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
-				  };
+		    { {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},  
+			  {4, 5, 0, 8, 6, 1, 9, 7, 2, 10, 3, 11}, 
+			  {8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11}  
+		    };
 effectively on the same function chain.
 
 EXECUTION
