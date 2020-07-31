@@ -3,6 +3,8 @@ INTRODUCTION
 This repository provides the code base for a general discrete-event simulation framework for the LayBack architecture so as to support other researchers in conducting studies in the LayBack context. The case study code for the MEC based RAN function split is included in the public release as a demonstration model for a completed LayBack case study.
 This simulation framework has been implemented in OMNET++, www.omnetpp.org, version 5.0. The case study implements a function split fronthaul network within the context of the Layered Backhaul (LayBack) framework. The fundamental components include call generator, functional blocks, and SDN compute. src.cc implements the call generator, fb.cc implements the functional block, and SDN.cc implements the SDN based LayBack framework.
 
+Second part of the code changes include the changes for (Moby) Docker push and pull for compression and decompression acceleration using a hardware accelerator. 
+
 SIMULATION SETUP
 ===========================
 This simulation setup is configured as follows:
@@ -61,4 +63,26 @@ EXECUTION
 4.	"Build" the project
 5.	"Run" to run each experiment as defined in omnetpp.ini, change ini file to reflect your simulation scenario.
 6.	The entire process can be automated with a omnetpp "opp runall gcc debug-results" command on command-prompt window.
+
+PART 2: Docker Changes for Container Migration Acceleration
+===========================
+
+We modify following files for adopting the hardware accelerations for container migration Docker push and pull.
+
+	Dockerfile
+	Makefile
+	cmd/dockerd/docker.go
+	distribution/push.go
+	distribution/push_v2.go
+	layer/layer_store.go
+	pkg/archive/archive.go
+	
+1. Folder /moby-fork includes the actual changes over default moby Docker code base
+2. In default docker setup, GZIP and PIGZ is used for compression and decompression, respectively.
+3. However, for the container image migration and instantiation compression and decompression is a compute intensive task, especially for a network function instantiation in the containerized RAN framework accross the LayBack infrastructure. 
+4. Service Function Chaining (SFC) and Network Function instantiation and migration can be accelerated.
+5. More specifically, our changes will improve the overall container (network function) application instantiation, migration, and tear-down operations of the functions. 
+6. IO streamer is used to pass data between Docker and QZIP application, hence there involves memory copies, and context switching overheads.
+7. File: ContMigDocker/changes_for_qat.patch includes the git_patch of changes that can be applied to the existing Docker code-base to enable the hardware acceleration.
+
 
