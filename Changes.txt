@@ -1,0 +1,10 @@
+
+
+        modified:   Dockerfile
+        modified:   Makefile
+        modified:   cmd/dockerd/docker.go
+        modified:   distribution/push.go
+        modified:   distribution/push_v2.go
+        modified:   layer/layer_store.go
+        modified:   pkg/archive/archive.go
+

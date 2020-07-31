@@ -1,0 +1,246 @@
+diff --git a/cmd/dockerd/docker.go b/cmd/dockerd/docker.go
+index bace6be..6b93888 100644
+--- a/cmd/dockerd/docker.go
++++ b/cmd/dockerd/docker.go
+@@ -25,7 +25,7 @@ func newDaemonCommand() (*cobra.Command, error) {
+ 
+ 	cmd := &cobra.Command{
+ 		Use:           "dockerd [OPTIONS]",
+-		Short:         "A self-sufficient runtime for containers.",
++		Short:         "A self-sufficient & sreally fun runtime for containers.",
+ 		SilenceUsage:  true,
+ 		SilenceErrors: true,
+ 		Args:          cli.NoArgs,
+diff --git a/distribution/push.go b/distribution/push.go
+index 5617a4c..b8d54e2 100644
+--- a/distribution/push.go
++++ b/distribution/push.go
+@@ -1,11 +1,15 @@
+ package distribution // import "github.com/docker/docker/distribution"
+ 
+ import (
+-	"bufio"
+-	"compress/gzip"
++//	"bufio"
++//	"compress/gzip"
+ 	"context"
++    "bytes"
+ 	"fmt"
+ 	"io"
++//	"os"
++	"os/exec"
++//	"path/filepath"
+ 
+ 	"github.com/docker/distribution/reference"
+ 	"github.com/docker/docker/distribution/metadata"
+@@ -14,6 +18,8 @@ import (
+ 	"github.com/sirupsen/logrus"
+ )
+ 
++var unpigzPath string
++
+ // Pusher is an interface that abstracts pushing for different API versions.
+ type Pusher interface {
+ 	// Push tries to push the image configured at the creation of Pusher.
+@@ -155,11 +161,23 @@ func Push(ctx context.Context, ref reference.Named, imagePushConfig *ImagePushCo
+ func compress(in io.Reader) (io.ReadCloser, chan struct{}) {
+ 	compressionDone := make(chan struct{})
+ 
+-	pipeReader, pipeWriter := io.Pipe()
++	// pipeReader, pipeWriter := io.Pipe()
+ 	// Use a bufio.Writer to avoid excessive chunking in HTTP request.
+-	bufWriter := bufio.NewWriterSize(pipeWriter, compressionBufSize)
+-	compressor := gzip.NewWriter(bufWriter)
++	// bufWriter := bufio.NewWriterSize(pipeWriter, compressionBufSize)
++    //	compressor := gzip.NewWriter(bufWriter)
++	//logrus.Debug("NEW COMPRESSOR, which might be using QZIP")
++	if path, err := exec.LookPath("qzip"); err != nil {
++	//logrus.Debug("qzip binary not found in PATH, falling back to go gzip library")
++    } else {
++	//logrus.Debugf("Using qzip binary found at path %s", path)
++	unpigzPath = path
++	}
+ 
++	ctx, cancel := context.WithCancel(context.Background())
++	//logrus.Debugf("qzcompress start-pre")
++	pipeReader  := cmdStream(exec.CommandContext(ctx, unpigzPath, "-L", "4", "-k"), in)
++
++/*
+ 	go func() {
+ 		_, err := io.Copy(compressor, in)
+ 		if err == nil {
+@@ -173,8 +191,47 @@ func compress(in io.Reader) (io.ReadCloser, chan struct{}) {
+ 		} else {
+ 			pipeWriter.Close()
+ 		}
+-		close(compressionDone)
++        close(compressionDone)
+ 	}()
+-
++*/
++     var err *int
++     if err != nil {
++			cancel()
++	 }
++
++	close(compressionDone)
++	//logrus.Debugf("qzcompress end-pre")
+ 	return pipeReader, compressionDone
+ }
++
++
++// cmdStream executes a command, and returns its stdout as a stream.
++// If the command fails to run or doesn't complete successfully, an error
++// will be returned, including anything written on stderr.
++func cmdStream(cmd *exec.Cmd, input io.Reader) (io.ReadCloser) {
++	//bufff := new(bytes.Buffer)
++	//bufff.ReadFrom(input)
++	//streeee := bufff.String() // Does a complete copy of the bytes in the buffer.
++	//logrus.Debugf("INPUT BUFFER %s", streeee)
++	cmd.Stdin = input
++	pipeR, pipeW := io.Pipe()
++	cmd.Stdout = pipeW
++	var errBuf bytes.Buffer
++	cmd.Stderr = &errBuf
++
++	// Run the command and return the pipe
++	if err := cmd.Start(); err != nil {
++		return nil
++	}
++
++	// Copy stdout to the returned pipe
++	go func() {
++		if err := cmd.Wait(); err != nil {
++			pipeW.CloseWithError(fmt.Errorf("%s: %s", err, errBuf.String()))
++		} else {
++			pipeW.Close()
++		}
++	}()
++
++	return pipeR
++}
+diff --git a/distribution/push_v2.go b/distribution/push_v2.go
+index e15384e..945762f 100644
+--- a/distribution/push_v2.go
++++ b/distribution/push_v2.go
+@@ -449,6 +449,8 @@ func (pd *v2PushDescriptor) uploadUsingSession(
+ 
+ 	reader = progress.NewProgressReader(ioutils.NewCancelReadCloser(ctx, contentReader), progressOutput, size, pd.ID(), "Pushing")
+ 
++	logrus.Debugf("qzcompress start")
++
+ 	switch m := pd.layer.MediaType(); m {
+ 	case schema2.MediaTypeUncompressedLayer:
+ 		compressedReader, compressionDone := compress(reader)
+@@ -463,6 +465,7 @@ func (pd *v2PushDescriptor) uploadUsingSession(
+ 		return distribution.Descriptor{}, fmt.Errorf("unsupported layer media type %s", m)
+ 	}
+ 
++	logrus.Debugf("qzcompress end")
+ 	digester := digest.Canonical.Digester()
+ 	tee := io.TeeReader(reader, digester.Hash())
+ 
+diff --git a/layer/layer_store.go b/layer/layer_store.go
+index 7b8c011..706a220 100644
+--- a/layer/layer_store.go
++++ b/layer/layer_store.go
+@@ -733,6 +733,7 @@ func (ls *layerStore) getTarStream(rl *roLayer) (io.ReadCloser, error) {
+ 		} else {
+ 			pw.Close()
+ 		}
++		logrus.Debugf("Assembled tar data for %s", rl.cacheID)
+ 	}()
+ 
+ 	return pr, nil
+diff --git a/pkg/archive/archive.go b/pkg/archive/archive.go
+index bb623fa..32146fe 100644
+--- a/pkg/archive/archive.go
++++ b/pkg/archive/archive.go
+@@ -30,10 +30,10 @@ import (
+ var unpigzPath string
+ 
+ func init() {
+-	if path, err := exec.LookPath("unpigz"); err != nil {
+-		logrus.Debug("unpigz binary not found in PATH, falling back to go gzip library")
++	if path, err := exec.LookPath("qzip"); err != nil {
++		logrus.Debug("qzip binary not found in PATH, falling back to go gzip library")
+ 	} else {
+-		logrus.Debugf("Using unpigz binary found at path %s", path)
++		logrus.Debugf("Using qzip binary found at path %s", path)
+ 		unpigzPath = path
+ 	}
+ }
+@@ -123,7 +123,13 @@ func IsArchivePath(path string) bool {
+ 		return false
+ 	}
+ 	defer file.Close()
++	temppp:=time.Now()
++	logrus.Debugf("qzdecompress start : %s",temppp)
++
+ 	rdr, err := DecompressStream(file)
++
++	temppp2:=time.Now()
++	logrus.Debugf("qzdecompress end : %s",temppp2)
+ 	if err != nil {
+ 		return false
+ 	}
+@@ -163,15 +169,19 @@ func gzDecompress(ctx context.Context, buf io.Reader) (io.ReadCloser, error) {
+ 	}
+ 
+ 	disablePigzEnv := os.Getenv("MOBY_DISABLE_PIGZ")
++	//logrus.Debug("MOBY_DISABLE_PIGZ LOGGING")
+ 	if disablePigzEnv != "" {
+ 		if disablePigz, err := strconv.ParseBool(disablePigzEnv); err != nil {
++			//logrus.Debug("disablePigzEnv return")
+ 			return nil, err
+ 		} else if disablePigz {
+ 			return gzip.NewReader(buf)
+ 		}
+ 	}
+ 
+-	return cmdStream(exec.CommandContext(ctx, unpigzPath, "-d", "-c"), buf)
++	//logrus.Debug("Executing QZIP command right after this")
++	//logrus.Debugf("qzdecompress start")
++	return cmdStream(exec.CommandContext(ctx, unpigzPath, "-k", "-d"), buf)
+ }
+ 
+ func wrapReadCloser(readBuf io.ReadCloser, cancel context.CancelFunc) io.ReadCloser {
+@@ -203,8 +213,11 @@ func DecompressStream(archive io.Reader) (io.ReadCloser, error) {
+ 		return readBufWrapper, nil
+ 	case Gzip:
+ 		ctx, cancel := context.WithCancel(context.Background())
+-
++		//temppp:=time.Now()
++		//logrus.Debugf("qzdecompress start : %s",temppp)
+ 		gzReader, err := gzDecompress(ctx, buf)
++		//temppp2:=time.Now()
++		//logrus.Debugf("qzdecompress end : %s",temppp2)
+ 		if err != nil {
+ 			cancel()
+ 			return nil, err
+@@ -1047,7 +1060,14 @@ func untarHandler(tarArchive io.Reader, dest string, options *TarOptions, decomp
+ 
+ 	r := tarArchive
+ 	if decompress {
++		//temppp:=time.Now()
++		//logrus.Debugf("qzdecompress start : %s",temppp)	
++
+ 		decompressedArchive, err := DecompressStream(tarArchive)
++
++		//temppp2:=time.Now()
++		//logrus.Debugf("qzdecompress end : %s",temppp2)
++
+ 		if err != nil {
+ 			return err
+ 		}
+@@ -1207,6 +1227,10 @@ func remapIDs(idMapping *idtools.IdentityMapping, hdr *tar.Header) error {
+ // If the command fails to run or doesn't complete successfully, an error
+ // will be returned, including anything written on stderr.
+ func cmdStream(cmd *exec.Cmd, input io.Reader) (io.ReadCloser, error) {
++	//bufff := new(bytes.Buffer)
++	//bufff.ReadFrom(input)
++	//streeee := bufff.String() // Does a complete copy of the bytes in the buffer.
++	//logrus.Debugf("INPUT BUFFER %s", streeee)
+ 	cmd.Stdin = input
+ 	pipeR, pipeW := io.Pipe()
+ 	cmd.Stdout = pipeW
