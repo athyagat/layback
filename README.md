@@ -5,8 +5,11 @@ This simulation framework has been implemented in OMNET++, www.omnetpp.org, vers
 
 Second part of the code changes include the changes for (Moby) Docker push and pull for compression and decompression acceleration using a hardware accelerator. 
 
-SIMULATION SETUP
+PART 1: OMNET++ Code for LayBack
 ===========================
+
+SIMULATION SETUP
+--------------------------
 This simulation setup is configured as follows:
 1.	Call generator (src.cc) generates the call type of a call, with a prescribed mean call generation rate (\lambda) according to a Poisson process.
 2.	Function block (fb.cc) forwards the request to the SDN orchestrator with the fb-id such that the computing and link resources can be assigned by the SDN orchestrator and tracked.
@@ -15,7 +18,7 @@ This simulation setup is configured as follows:
 5.	MATLAB script (matlab_parsing.m) extracts the data from the out/results folder of omnetpp workspace.
 
 OPERATIONAL PROCEDURE
-===========================
+--------------------------
 The call generator originates three types of calls, with the following compute demands and bitrate requirements:
 
 	call[low].compute_data[numBlock-1]      = 1;
@@ -56,7 +59,7 @@ effectively in a zig-zag pattern prioritizing the nodes closer to the user.
 effectively on the same function chain.
 
 EXECUTION
-===========================
+--------------------------
 1.	Install the OMNET++ version 5.0 or greater,
 2.	Import the project from local folder, and change your workspace to LayBack folder
 3.	"Clean" the project
@@ -64,11 +67,12 @@ EXECUTION
 5.	"Run" to run each experiment as defined in omnetpp.ini, change ini file to reflect your simulation scenario.
 6.	The entire process can be automated with a omnetpp "opp runall gcc debug-results" command on command-prompt window.
 
-PART 2: Docker Changes for Container Migration Acceleration
+PART 2: Service Migration Acceleration in LayBack
 ===========================
 
+DOCKER CHANGES SUMMARY
+--------------------------
 We modify following files for adopting the hardware accelerations for container migration Docker push and pull.
-
 	Dockerfile
 	Makefile
 	cmd/dockerd/docker.go
@@ -76,6 +80,9 @@ We modify following files for adopting the hardware accelerations for container 
 	distribution/push_v2.go
 	layer/layer_store.go
 	pkg/archive/archive.go
+
+DOCKER CHANGES DETAILS
+--------------------------
 	
 1. Folder /moby-fork includes the actual changes over default moby Docker code base
 2. In default docker setup, GZIP and PIGZ is used for compression and decompression, respectively.
