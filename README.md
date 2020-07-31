@@ -73,6 +73,7 @@ PART 2: Service Migration Acceleration in LayBack
 DOCKER CHANGES SUMMARY
 --------------------------
 We modify following files for adopting the hardware accelerations for container migration Docker push and pull.
+
 	Dockerfile
 	Makefile
 	cmd/dockerd/docker.go
@@ -84,7 +85,7 @@ We modify following files for adopting the hardware accelerations for container 
 DOCKER CHANGES DETAILS
 --------------------------
 	
-1. Folder /moby-fork includes the actual changes over default moby Docker code base
+1. Folder /moby-fork includes the actual changes over default moby Docker code base.
 2. In default docker setup, GZIP and PIGZ is used for compression and decompression, respectively.
 3. However, for the container image migration and instantiation compression and decompression is a compute intensive task, especially for a network function instantiation in the containerized RAN framework accross the LayBack infrastructure. 
 4. Service Function Chaining (SFC) and Network Function instantiation and migration can be accelerated.
