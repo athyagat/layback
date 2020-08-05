@@ -89,4 +89,17 @@ We modify following files for adopting the hardware accelerations for container 
 6. IO streamer is used to pass data between Docker and QZIP application, hence there involves memory copies, and context switching overheads.
 7. File: changes_for_qat.patch includes the git_patch of changes that can be applied to the existing Docker code-base to enable the hardware acceleration.
 
+
+2.3 Disclaimers for the Evaluation on Intel's Platforms
+--------------------
+
+Software and workloads used in performance tests may have been optimized for performance only on Intel microprocessors. Performance tests, such as SYSmark and MobileMark, are measured using specific computer systems, components, software, operations and functions. Any change to any of those factors may cause the results to vary. You should consult other information and performance tests to assist you in fully evaluating your contemplated purchases, including the performance of that product when combined with other products. For more information go to www.intel.com/benchmarks.
+ 
+
+Performance results are based on testing as of July 15, 2020 (San Diego), disclosed in the system configuration and may not reflect all publicly available security updates.  See configuration disclosure for details. No product or component can be absolutely secure.
+
+Intel technologies’ features and benefits depend on system configuration and may require enabled hardware, software or service activation. Performance varies depending on system configuration. Check with your system manufacturer or retailer or learn more at www.intel.com.
+
+Optimization Notice: Intel's compilers may or may not optimize to the same degree for non-Intel microprocessors for optimizations that are not unique to Intel microprocessors. These optimizations include SSE2, SSE3, and SSSE3 instruction sets and other optimizations. Intel does not guarantee the availability, functionality, or effectiveness of any optimization on microprocessors not manufactured by Intel. Microprocessor-dependent optimizations in this product are intended for use with Intel microprocessors. Certain optimizations not specific to Intel microarchitecture are reserved for Intel microprocessors. Please refer to the applicable product User and Reference Guides for more information regarding the specific instruction sets covered by this notice.  Notice Revision #20110804.
+
 <END>
