@@ -133,9 +133,9 @@ void sdn_switch::handleMessage(cMessage* msg){
 
 ```
 
-### 2.5 SARSA
+### 2.5 Reward polcy based logic
 
-Based on the [framework](https://github.com/dennybritz/reinforcement-learning/blob/master/TD/SARSA%20Solution.ipynb), I implment the SARSA algorithm with softmax policy. But it is a little different with the problem solved in that framework. That's because there's totally N, the number of all switches in the network, SARSA processes running for this SDN. Since only the destination of the message matters, but the source of it doesn't, so there comes N. And based on that, there're some tricky variables:
+
 
 ```c++
 class domain_controller : public cSimpleModule
