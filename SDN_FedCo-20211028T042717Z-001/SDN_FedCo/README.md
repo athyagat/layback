@@ -133,7 +133,7 @@ void sdn_switch::handleMessage(cMessage* msg){
 
 ```
 
-### 2.5 Reward polcy based logic
+### 2.5 Reward policy based logic--update required for averaging
 
 
 
